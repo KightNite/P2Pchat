@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.java.com.kightnite.gui.HelloController">
+
+
+  <VBox alignment="TOP_LEFT" prefWidth="300" spacing="20.0" styleClass="vbox1" VBox.vgrow="ALWAYS">
+    <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+    </padding>
+
+    <Button onAction="#onHelloButtonClick" text="Refresh" />
+
+    <Label fx:id="welcomeText" />
+
+    <ScrollPane fx:id="scrollPane" VBox.vgrow="ALWAYS">
+         <content>
+            <GridPane fx:id="gridConnections">
+            </GridPane>
+         </content>
+    </ScrollPane>
+
+
+
+  </VBox>
+
+  <VBox alignment="TOP_LEFT" prefHeight="400">
+    <padding>
+      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+    <Label text="CHAT" />
+    <HBox alignment="BOTTOM_LEFT">
+      <TextArea />
+    </HBox>
+  </VBox>
+</HBox>

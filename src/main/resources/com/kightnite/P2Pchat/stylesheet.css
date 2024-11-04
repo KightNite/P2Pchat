@@ -1,0 +1,7 @@
+
+.vbox1 {
+    -fx-border-color: black;
+    -fx-border-insets: 1;
+    -fx-border-width: 3;
+    -fx-border-style: dashed;
+}
