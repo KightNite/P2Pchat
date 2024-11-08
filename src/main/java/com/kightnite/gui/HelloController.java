@@ -9,6 +9,7 @@ import javafx.scene.layout.GridPane;
 import main.java.com.kightnite.client.Client;
 import main.java.com.kightnite.model.DataSocket;
 
+import java.net.SocketAddress;
 import java.util.List;
 
 public class HelloController {
@@ -36,6 +37,12 @@ public class HelloController {
 
     }
 
+    @FXML
+    protected void onConnectButtonClick(SocketAddress address) {
+        client.connectToPeer(address);
+
+    }
+
     private GridPane createConnectionGrid(List<DataSocket> connections) {
 
         GridPane gridConnections = new GridPane();
@@ -43,6 +50,8 @@ public class HelloController {
         for(int i=0; i<connections.size(); i++){
             Button button = new Button();
             button.setText("Connect");
+            int index = i;
+            button.setOnAction(actionEvent -> onConnectButtonClick(connections.get(index).address));
 
             Label label = new Label();
             label.setText(connections.get(i).toString());

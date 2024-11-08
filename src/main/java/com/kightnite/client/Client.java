@@ -14,6 +14,8 @@ public class Client {
     ObjectInputStream objectInput;
     Scanner scanner;
     String name;
+    private ServerSocket inviteServerSocket;
+    public ClientListener clientListener;
 
 
     public static void main(String[] args) {
@@ -40,19 +42,17 @@ public class Client {
 
             //OUTCOMING MESSAGE
             OutputStream output = socket.getOutputStream();
+            ObjectOutputStream outputObject = new ObjectOutputStream(output);
             this.writer = new PrintWriter(output, true);
 
             //INCOMING MESSAGE
             InputStream input = socket.getInputStream();
             this.objectInput = new ObjectInputStream(input);
 
+            connectToServer(outputObject);
 
-            writer.println(name);
+            startClientListener();
 
-            List<DataSocket> dataPool = (List<DataSocket>) objectInput.readObject();
-            for (DataSocket dataSocket : dataPool) {
-                System.out.println("DATA: " + dataSocket.address + " " + dataSocket.data);
-            }
 
         } catch (UnknownHostException ex) {
             System.out.println("Server not found: " + ex.getMessage());
@@ -89,6 +89,43 @@ public class Client {
         }
     }
 
+    private void connectToServer(ObjectOutputStream outputObject) throws IOException, ClassNotFoundException {
+        inviteServerSocket = new ServerSocket(0);
+        SocketAddress inviteAddress = inviteServerSocket.getLocalSocketAddress();
+
+        outputObject.writeObject(new DataSocket(inviteAddress, name));
+
+        List<DataSocket> dataPool = (List<DataSocket>) objectInput.readObject();
+        for (DataSocket dataSocket : dataPool) {
+            System.out.println("DATA: " + dataSocket.address + " " + dataSocket.data);
+        }
+    }
+
+    private void startClientListener() {
+        this.clientListener = new ClientListener(inviteServerSocket);
+        clientListener.start();
+    }
+
+    public void connectToPeer(SocketAddress socketAddress) {
+
+        try (Socket socket = new Socket()) {
+            // Connect to client
+            socket.connect(socketAddress);
+            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            // Send Data
+            writer.println("REQUEST TEXT");
+            System.out.println("SENT REQUEST...");
+
+            // Receive Data
+            System.out.println(reader.readLine());
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void close() {
         try {
             socket.close();
@@ -99,8 +136,14 @@ public class Client {
 
     public List<DataSocket> ping() {
         writer.println("Hi");
+
+        List<DataSocket> result;
+
         try {
-            return (List<DataSocket>) objectInput.readObject();
+
+            result = (List<DataSocket>) objectInput.readObject();
+            result.removeIf(x -> x.address.equals(inviteServerSocket.getLocalSocketAddress()));
+            return result;
         } catch (IOException ex) {
             System.out.println("I/O error: " + ex.getMessage());
             close();

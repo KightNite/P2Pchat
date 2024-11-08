@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 public class ServerListener {
@@ -19,7 +20,8 @@ public class ServerListener {
             port = Integer.parseInt(args[0]);
         }
 
-        List<DataSocket> dataPools = new ArrayList<>();
+//        List<DataSocket> dataPools = new ArrayList<>();
+        Hashtable<SocketAddress, DataSocket> addressTable = new Hashtable<>();
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server is listening on port " + port);
@@ -30,7 +32,7 @@ public class ServerListener {
                 SocketAddress address = socket.getRemoteSocketAddress();
 //                System.out.println(address);
 
-                new ServerThread(socket, dataPools, address).start();
+                new ServerThread(socket, addressTable, address).start();
             }
 
         } catch (IOException ex) {
