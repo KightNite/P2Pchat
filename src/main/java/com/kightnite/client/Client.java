@@ -9,11 +9,11 @@ import java.util.Objects;
 import java.util.Scanner;
 
 public class Client {
-    Socket socket;
-    PrintWriter writer;
-    ObjectInputStream objectInput;
-    Scanner scanner;
-    String name;
+    private Socket socket;
+    private PrintWriter writer;
+    private ObjectInputStream objectInput;
+    private Scanner scanner;
+    private String name;
     private ServerSocket inviteServerSocket;
     public ClientListener clientListener;
 
@@ -106,7 +106,8 @@ public class Client {
         clientListener.start();
     }
 
-    public void connectToPeer(SocketAddress socketAddress) {
+    /// FOR DEBUG
+    public void connectToPeerTest(SocketAddress socketAddress) {
 
         try (Socket socket = new Socket()) {
             // Connect to client
@@ -126,6 +127,10 @@ public class Client {
         }
     }
 
+    public void connectToPeer(SocketAddress socketAddress) {
+        clientListener.connectToPeer(socketAddress);
+    }
+
     public void close() {
         try {
             socket.close();
@@ -140,7 +145,6 @@ public class Client {
         List<DataSocket> result;
 
         try {
-
             result = (List<DataSocket>) objectInput.readObject();
             result.removeIf(x -> x.address.equals(inviteServerSocket.getLocalSocketAddress()));
             return result;
