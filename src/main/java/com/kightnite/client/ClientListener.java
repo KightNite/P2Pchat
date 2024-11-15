@@ -1,23 +1,29 @@
 package main.java.com.kightnite.client;
 
+import javafx.application.Platform;
+import main.java.com.kightnite.events.PendingConnectionListener;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketAddress;
+import java.net.*;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 
 public class ClientListener extends Thread{
     public ServerSocket listenerServerSocket;
     public List<ClientChat> connectedChats;
+    private Hashtable<SocketAddress, Socket> pendingSockets;
+    private List<PendingConnectionListener> pendingConnectionListeners;
 
     public ClientListener(ServerSocket serverSocket) {
         listenerServerSocket = serverSocket;
         connectedChats = new ArrayList<>();
+        pendingSockets = new Hashtable<>();
+        pendingConnectionListeners = new ArrayList<>();
     }
 
     @Override
@@ -47,15 +53,24 @@ public class ClientListener extends Thread{
             ClientChat chat = new ClientChat(socket);
 
             // Send Request
-            chat.sendData("HELLO WORLD");
+            InetSocketAddress address = (InetSocketAddress) listenerServerSocket.getLocalSocketAddress();
+            System.out.println("Listener: " + address);
+            // 0.0.0.0/0.0.0.0:61158
+            System.out.println("Local socket: " + socket.getLocalSocketAddress());
+
+            String stringAddress = address.getHostString() + ":" + address.getPort();
+
+            chat.sendData(stringAddress);
 
             // Receive Answer
             String text = reader.readLine();
             System.out.println("RECEIVED: " + text);
 
             if (Objects.equals(text, "accepted")) {
-                connectedChats.add(chat);
-                chat.start();
+                //TODO!
+//                connectedChats.add(chat);
+//                chat.start();
+                socket.close();
             } else {
                 socket.close();
             }
@@ -76,6 +91,9 @@ public class ClientListener extends Thread{
             // Receive Data
             String text = reader.readLine();
             System.out.println("Request: " + text);
+            SocketAddress address = resolveAddress(text);
+
+            updatePendingConnections(address, socket);
 
             // TODO!!! Implement accepting/declining new connections
             // Accept or decline connection
@@ -88,14 +106,42 @@ public class ClientListener extends Thread{
             // Send Approval confirmation
             writer.println("accepted");
 
+            //TODO!!! Create Chat instance
             // Start new Chat instance and add it to the list
-            ClientChat chat = new ClientChat(socket, reader, writer);
-            connectedChats.add(chat);
+//            ClientChat chat = new ClientChat(socket, reader, writer);
+//            connectedChats.add(chat);
 
-            chat.start();
+//            chat.start();
         }
     }
 
+    public void resolveRequest() {
+        // TODO!
+    }
+
+    public void updatePendingConnections(SocketAddress address, Socket socket) {
+        pendingSockets.put(address, socket);
+        Platform.runLater(() -> {
+            pendingConnectionListeners.forEach(PendingConnectionListener::onNewConnection);
+        });
+    }
+
+    public void addPendingConnectionListener(PendingConnectionListener listener) {
+        pendingConnectionListeners.add(listener);
+    }
+
+    public Hashtable<SocketAddress, Socket> getPendingConnections() {
+        return pendingSockets;
+    }
+
+    private SocketAddress resolveAddress(String address) {
+
+        String ipAddress = address.substring(0, address.indexOf(':'));
+        int port = Integer.parseInt(address.substring(address.indexOf(':') + 1));
+
+        return new InetSocketAddress(ipAddress, port);
+
+    }
 
     /// FOR DEBUG
     public void listenToConnectionTest() throws IOException {

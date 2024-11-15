@@ -13,6 +13,7 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+        // Initialize Client
         this.client = new Client();
         client.startClient("App Client");
 
@@ -22,6 +23,9 @@ public class HelloApplication extends Application {
 
         HelloController controller = fxmlLoader.getController();
         controller.setClient(this.client);
+
+        // Add listener
+        client.clientListener.addPendingConnectionListener(controller::onPendingConnection);
 
         stage.setTitle("P2PChat");
         stage.setScene(scene);
@@ -33,7 +37,9 @@ public class HelloApplication extends Application {
         super.stop();
 
         // Close all threads
-        client.clientListener.listenerServerSocket.close();
+        if (client.clientListener != null) {
+            client.clientListener.listenerServerSocket.close();
+        }
     }
 
     public static void main(String[] args) {

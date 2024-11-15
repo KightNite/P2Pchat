@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.GridPane;
 import main.java.com.kightnite.client.Client;
-import main.java.com.kightnite.model.DataSocket;
+import main.java.com.kightnite.model.ClientConnection;
 
 import java.net.SocketAddress;
 import java.util.List;
@@ -27,13 +27,17 @@ public class HelloController {
     Client client;
 
     @FXML
-    protected void onHelloButtonClick() {
+    protected void onRerfreshButton() {
 
-        List<DataSocket> connections = client.ping();
+        List<ClientConnection> connections = client.ping();
+
+        for (ClientConnection connection : connections) {
+            System.out.println(connection);
+        }
 
         scrollPane.setContent(createConnectionGrid(connections));
 
-//        welcomeText.setText();
+        welcomeText.setText("Refreshing...");
 
     }
 
@@ -43,7 +47,7 @@ public class HelloController {
 
     }
 
-    private GridPane createConnectionGrid(List<DataSocket> connections) {
+    private GridPane createConnectionGrid(List<ClientConnection> connections) {
 
         GridPane gridConnections = new GridPane();
 
@@ -51,7 +55,7 @@ public class HelloController {
             Button button = new Button();
             button.setText("Connect");
             int index = i;
-            button.setOnAction(actionEvent -> onConnectButtonClick(connections.get(index).address));
+            button.setOnAction(actionEvent -> onConnectButtonClick(connections.get(index).dataSocket.address));
 
             Label label = new Label();
             label.setText(connections.get(i).toString());
@@ -71,5 +75,9 @@ public class HelloController {
 
     protected void setClient(Client client) {
         this.client = client;
+    }
+
+    protected void onPendingConnection() {
+        onRerfreshButton();
     }
 }

@@ -1,5 +1,6 @@
 package main.java.com.kightnite.client;
 
+import main.java.com.kightnite.model.ClientConnection;
 import main.java.com.kightnite.model.DataSocket;
 
 import java.io.*;
@@ -139,14 +140,22 @@ public class Client {
         }
     }
 
-    public List<DataSocket> ping() {
+    public List<ClientConnection> ping() {
         writer.println("Hi");
 
-        List<DataSocket> result;
+        List<DataSocket> data;
+        List<ClientConnection> result = null;
 
         try {
-            result = (List<DataSocket>) objectInput.readObject();
-            result.removeIf(x -> x.address.equals(inviteServerSocket.getLocalSocketAddress()));
+            // Get sockets from server and remove own
+            data = (List<DataSocket>) objectInput.readObject();
+            data.removeIf(x -> x.address.equals(inviteServerSocket.getLocalSocketAddress()));
+            result = data.stream().map(ClientConnection::new).toList();
+
+            // Check for pending sockets
+            result.stream().filter(x -> clientListener.getPendingConnections().containsKey(x.dataSocket.address))
+                    .forEach(x -> x.pending = true);
+
             return result;
         } catch (IOException ex) {
             System.out.println("I/O error: " + ex.getMessage());
