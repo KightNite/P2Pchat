@@ -15,10 +15,10 @@ public class HelloApplication extends Application {
     public void start(Stage stage) throws IOException {
         // Initialize Client
         this.client = new Client();
-        client.startClient("App Client");
+        client.startClient("App");
 
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/com/kightnite/P2Pchat/hello-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 600, 400);
+        Scene scene = new Scene(fxmlLoader.load(), 800, 400);
         scene.getStylesheets().add("/com/kightnite/P2Pchat/stylesheet.css");
 
         HelloController controller = fxmlLoader.getController();

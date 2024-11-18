@@ -21,6 +21,6 @@ public class DataSocket implements Serializable {
 
     @Override
     public String toString() {
-        return "DATA: " + address + " | " + data;
+        return data + " | " + address;
     }
 }

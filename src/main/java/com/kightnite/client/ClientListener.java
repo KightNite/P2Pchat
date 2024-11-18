@@ -3,10 +3,7 @@ package main.java.com.kightnite.client;
 import javafx.application.Platform;
 import main.java.com.kightnite.events.PendingConnectionListener;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -33,7 +30,7 @@ public class ClientListener extends Thread{
         try {
             listenToConnection();
 
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             System.out.println("Client Listener I/O error: " + e.getMessage());
 //            throw new RuntimeException(e);
         }
@@ -53,14 +50,10 @@ public class ClientListener extends Thread{
             ClientChat chat = new ClientChat(socket);
 
             // Send Request
-            InetSocketAddress address = (InetSocketAddress) listenerServerSocket.getLocalSocketAddress();
-            System.out.println("Listener: " + address);
-            // 0.0.0.0/0.0.0.0:61158
-            System.out.println("Local socket: " + socket.getLocalSocketAddress());
+            SocketAddress address = listenerServerSocket.getLocalSocketAddress();
 
-            String stringAddress = address.getHostString() + ":" + address.getPort();
 
-            chat.sendData(stringAddress);
+            chat.sendObjectData(address);
 
             // Receive Answer
             String text = reader.readLine();
@@ -79,19 +72,20 @@ public class ClientListener extends Thread{
         }
     }
 
-    public void listenToConnection() throws IOException {
+    public void listenToConnection() throws IOException, ClassNotFoundException {
         // TODO! Cleanup
         while (true) {
             // Start listening for connections
             Socket socket = listenerServerSocket.accept();
             System.out.println("New client connection request");
             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            InputStream input = socket.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+            ObjectInputStream objectReader = new ObjectInputStream(socket.getInputStream());
 
             // Receive Data
-            String text = reader.readLine();
-            System.out.println("Request: " + text);
-            SocketAddress address = resolveAddress(text);
+            SocketAddress address = (SocketAddress) objectReader.readObject();
+            System.out.println(address);
 
             updatePendingConnections(address, socket);
 

@@ -39,6 +39,8 @@ public class Client {
         try {
             this.socket = new Socket(hostname, port);
 
+            this.name += " " + socket.getLocalPort();
+
             String result = null;
 
             //OUTCOMING MESSAGE
