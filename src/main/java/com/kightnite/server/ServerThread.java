@@ -1,6 +1,6 @@
 package main.java.com.kightnite.server;
 
-import main.java.com.kightnite.model.DataSocket;
+import main.java.com.kightnite.model.ServerData;
 
 import java.io.*;
 import java.net.Socket;
@@ -10,10 +10,10 @@ import java.util.Hashtable;
 
 public class ServerThread extends Thread {
     private Socket socket;
-    private Hashtable<SocketAddress, DataSocket> addressTable;
+    private Hashtable<SocketAddress, ServerData> addressTable;
     private SocketAddress address;
 
-    public ServerThread(Socket socket, Hashtable<SocketAddress, DataSocket> addressTable, SocketAddress address){
+    public ServerThread(Socket socket, Hashtable<SocketAddress, ServerData> addressTable, SocketAddress address){
         this.socket = socket;
         this.addressTable = addressTable;
         this.address = socket.getRemoteSocketAddress();
@@ -29,15 +29,15 @@ public class ServerThread extends Thread {
             ObjectOutputStream objectOutput = new ObjectOutputStream(output);
 
             // Get data (name for now) from client
-            DataSocket data = (DataSocket) inputObject.readObject();
+            ServerData data = (ServerData) inputObject.readObject();
 
             // Add to online connections
 //            addressTable.add(address);
             addressTable.put(address, data);
 
             // Display connections
-            for (DataSocket dataSocket : addressTable.values()) {
-                System.out.println("DATA: " + dataSocket.address + " " + dataSocket.data);
+            for (ServerData serverData : addressTable.values()) {
+                System.out.println("DATA: " + serverData.address + " " + serverData.data);
             }
 
             // Send list of connections

@@ -1,14 +1,12 @@
 package main.java.com.kightnite.server;
 
-import main.java.com.kightnite.model.DataSocket;
+import main.java.com.kightnite.model.ServerData;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 public class ServerListener {
 
@@ -21,7 +19,7 @@ public class ServerListener {
         }
 
 //        List<DataSocket> dataPools = new ArrayList<>();
-        Hashtable<SocketAddress, DataSocket> addressTable = new Hashtable<>();
+        Hashtable<SocketAddress, ServerData> addressTable = new Hashtable<>();
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server is listening on port " + port);

@@ -3,17 +3,17 @@ package main.java.com.kightnite.model;
 import java.io.Serializable;
 import java.net.SocketAddress;
 
-public class DataSocket implements Serializable {
+public class ServerData implements Serializable {
 
     public SocketAddress address;
     public String data;
 
 
-    public DataSocket(SocketAddress address) {
+    public ServerData(SocketAddress address) {
         this.address = address;
     }
 
-    public DataSocket(SocketAddress address, String data) {
+    public ServerData(SocketAddress address, String data) {
         this.address = address;
         this.data = data;
     }

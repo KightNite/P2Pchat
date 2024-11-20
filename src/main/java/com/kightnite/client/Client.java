@@ -1,10 +1,11 @@
 package main.java.com.kightnite.client;
 
-import main.java.com.kightnite.model.ClientConnection;
-import main.java.com.kightnite.model.DataSocket;
+import main.java.com.kightnite.model.ClientData;
+import main.java.com.kightnite.model.ServerData;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
@@ -77,9 +78,9 @@ public class Client {
                 result = scanner.nextLine();
                 writer.println(result);
 
-                List<DataSocket> dataPool = (List<DataSocket>) objectInput.readObject();
-                for (DataSocket dataSocket : dataPool) {
-                    System.out.println("DATA: " + dataSocket.address + " " + dataSocket.data);
+                List<ServerData> dataPool = (List<ServerData>) objectInput.readObject();
+                for (ServerData serverData : dataPool) {
+                    System.out.println("DATA: " + serverData.address + " " + serverData.data);
                 }
             }
         } catch (IOException ex) {
@@ -96,11 +97,11 @@ public class Client {
         inviteServerSocket = new ServerSocket(0);
         SocketAddress inviteAddress = inviteServerSocket.getLocalSocketAddress();
 
-        outputObject.writeObject(new DataSocket(inviteAddress, name));
+        outputObject.writeObject(new ServerData(inviteAddress, name));
 
-        List<DataSocket> dataPool = (List<DataSocket>) objectInput.readObject();
-        for (DataSocket dataSocket : dataPool) {
-            System.out.println("DATA: " + dataSocket.address + " " + dataSocket.data);
+        List<ServerData> dataPool = (List<ServerData>) objectInput.readObject();
+        for (ServerData serverData : dataPool) {
+            System.out.println("DATA: " + serverData.address + " " + serverData.data);
         }
     }
 
@@ -142,21 +143,25 @@ public class Client {
         }
     }
 
-    public List<ClientConnection> ping() {
+    public List<ClientData> getClientDataFromServer() throws IOException, ClassNotFoundException {
+        List<ServerData> serverData;
+        List<ClientData> clientData = new ArrayList<>();
+        serverData = (List<ServerData>) objectInput.readObject();
+
+        serverData.forEach(x -> clientData.add(new ClientData(x,
+                clientListener.getPendingConnections().containsKey(x.address))));
+        return clientData;
+    }
+
+    public List<ClientData> ping() {
         writer.println("Hi");
 
-        List<DataSocket> data;
-        List<ClientConnection> result = null;
+        List<ClientData> result = null;
 
         try {
             // Get sockets from server and remove own
-            data = (List<DataSocket>) objectInput.readObject();
-            data.removeIf(x -> x.address.equals(inviteServerSocket.getLocalSocketAddress()));
-            result = data.stream().map(ClientConnection::new).toList();
-
-            // Check for pending sockets
-            result.stream().filter(x -> clientListener.getPendingConnections().containsKey(x.dataSocket.address))
-                    .forEach(x -> x.pending = true);
+            result = getClientDataFromServer();
+            result.removeIf(x -> x.address.equals(inviteServerSocket.getLocalSocketAddress()));
 
             return result;
         } catch (IOException ex) {

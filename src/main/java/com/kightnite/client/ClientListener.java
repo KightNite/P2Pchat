@@ -50,23 +50,9 @@ public class ClientListener extends Thread{
             ClientChat chat = new ClientChat(socket);
 
             // Send Request
-            SocketAddress address = listenerServerSocket.getLocalSocketAddress();
+            chat.sendObjectData(listenerServerSocket.getLocalSocketAddress());
 
-
-            chat.sendObjectData(address);
-
-            // Receive Answer
-            String text = reader.readLine();
-            System.out.println("RECEIVED: " + text);
-
-            if (Objects.equals(text, "accepted")) {
-                //TODO!
-//                connectedChats.add(chat);
-//                chat.start();
-                socket.close();
-            } else {
-                socket.close();
-            }
+            connectedChats.add(chat);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -87,7 +73,8 @@ public class ClientListener extends Thread{
             SocketAddress address = (SocketAddress) objectReader.readObject();
             System.out.println(address);
 
-            updatePendingConnections(address, socket);
+            pendingSockets.put(address, socket);
+            updatePendingConnections();
 
             // TODO!!! Implement accepting/declining new connections
             // Accept or decline connection
@@ -109,12 +96,34 @@ public class ClientListener extends Thread{
         }
     }
 
-    public void resolveRequest() {
-        // TODO!
+    public void acceptRequest(SocketAddress address) {
+        Socket socket = pendingSockets.get(address);
+        try {
+            connectedChats.add(new ClientChat(socket)); //TODO handle this!
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            pendingSockets.remove(address);
+            updatePendingConnections();
+            //DEBUG
+            System.out.println("Chat Request Accepted");
+        }
     }
 
-    public void updatePendingConnections(SocketAddress address, Socket socket) {
-        pendingSockets.put(address, socket);
+    public void rejectRequest(SocketAddress address) {
+        Socket socket = pendingSockets.get(address);
+        try {
+            socket.close();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            pendingSockets.remove(address);
+            updatePendingConnections();
+            System.out.println("Chat Request Rejected");
+        }
+    }
+
+    public void updatePendingConnections() {
         Platform.runLater(() -> {
             pendingConnectionListeners.forEach(PendingConnectionListener::onNewConnection);
         });
@@ -135,25 +144,5 @@ public class ClientListener extends Thread{
 
         return new InetSocketAddress(ipAddress, port);
 
-    }
-
-    /// FOR DEBUG
-    public void listenToConnectionTest() throws IOException {
-        while (true) {
-            // Start listening for connections
-            Socket socket = listenerServerSocket.accept();
-            System.out.println("New client connection request");
-            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            // Receive Data
-            System.out.println("Start: " + reader.readLine());
-
-            // Send Data
-            writer.println("REPLY TEXT");
-
-            System.out.println("End: " + reader.readLine());
-            socket.close();
-        }
     }
 }

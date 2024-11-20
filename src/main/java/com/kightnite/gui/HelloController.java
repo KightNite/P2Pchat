@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.GridPane;
 import main.java.com.kightnite.client.Client;
-import main.java.com.kightnite.model.ClientConnection;
+import main.java.com.kightnite.model.ClientData;
 
 import java.net.SocketAddress;
 import java.util.List;
@@ -20,18 +20,14 @@ public class HelloController {
     @FXML
     private Label welcomeText;
 
-//    @FXML
-//    private GridPane gridConnections;
-
-
     Client client;
 
     @FXML
     protected void onRerfreshButton() {
 
-        List<ClientConnection> connections = client.ping();
+        List<ClientData> connections = client.ping();
 
-        for (ClientConnection connection : connections) {
+        for (ClientData connection : connections) {
             System.out.println(connection);
         }
 
@@ -47,26 +43,50 @@ public class HelloController {
 
     }
 
-    private GridPane createConnectionGrid(List<ClientConnection> connections) {
+    @FXML
+    protected void onAcceptButtonClick(SocketAddress address) {
+        client.clientListener.acceptRequest(address);
+    }
+
+    @FXML
+    protected void onRejectButtonClick(SocketAddress address) {
+        client.clientListener.rejectRequest(address);
+    }
+
+    private GridPane createConnectionGrid(List<ClientData> connections) {
 
         GridPane gridConnections = new GridPane();
 
         for(int i=0; i<connections.size(); i++){
-            Button button = new Button();
-            button.setText("Connect");
-            int index = i;
-            button.setOnAction(actionEvent -> onConnectButtonClick(connections.get(index).dataSocket.address));
+            SocketAddress address = connections.get(i).address;
+
+            Button buttonConnect = new Button();
+            buttonConnect.setText("Connect");
+            buttonConnect.setOnAction(actionEvent -> onConnectButtonClick(address));
 
             Label label = new Label();
             label.setText(connections.get(i).toString());
 
 
             //add them to the GridPane
-            gridConnections.add(button, 0, i); //  (child, columnIndex, rowIndex)
-            gridConnections.add(label , 1, i);
+            gridConnections.add(buttonConnect, 0, i); //  (child, columnIndex, rowIndex)
+            gridConnections.add(label , 3, i);
+
+            if (connections.get(i).isPending) {
+                Button buttonAccept = new Button();
+                buttonAccept.setText("Accept");
+                buttonAccept.setOnAction(actionEvent -> onAcceptButtonClick(address));
+
+                Button buttonReject = new Button();
+                buttonReject.setText("Reject");
+                buttonReject.setOnAction(actionEvent -> onRejectButtonClick(address));
+
+                gridConnections.add(buttonAccept, 1, i);
+                gridConnections.add(buttonReject, 2, i);
+            }
 
             // margins are up to your preference
-            GridPane.setMargin(button, new Insets(5));
+            GridPane.setMargin(buttonConnect, new Insets(5));
             GridPane.setMargin(label, new Insets(5));
         }
 
