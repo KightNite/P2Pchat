@@ -8,17 +8,16 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Objects;
 
 public class ClientListener extends Thread{
     public ServerSocket listenerServerSocket;
-    public List<ClientChat> connectedChats;
+    public Hashtable<SocketAddress, ClientChat> connectedChats;
     private Hashtable<SocketAddress, Socket> pendingSockets;
     private List<PendingConnectionListener> pendingConnectionListeners;
 
     public ClientListener(ServerSocket serverSocket) {
         listenerServerSocket = serverSocket;
-        connectedChats = new ArrayList<>();
+        connectedChats = new Hashtable<>();
         pendingSockets = new Hashtable<>();
         pendingConnectionListeners = new ArrayList<>();
     }
@@ -28,7 +27,9 @@ public class ClientListener extends Thread{
         System.out.println("Client Listener is listening on port " + listenerServerSocket.getLocalPort());
 
         try {
-            listenToConnection();
+            while (true) {
+                listenToConnection();
+            }
 
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Client Listener I/O error: " + e.getMessage());
@@ -36,8 +37,21 @@ public class ClientListener extends Thread{
         }
     }
 
+    public void close() throws IOException {
+        listenerServerSocket.close();
+
+        for (ClientChat clientChat : connectedChats.values()) {
+            clientChat.close();
+        }
+    }
+
     public void connectToPeer(SocketAddress socketAddress) {
         // TODO! Cleanup
+        // CHECK FOR EXISTING PENDING CONNECTION TO THIS ADDRESS
+        if(pendingSockets.containsKey(socketAddress) || connectedChats.containsKey(socketAddress)){
+            return;
+        }
+
         try {
             Socket socket = new Socket();
 
@@ -47,12 +61,11 @@ public class ClientListener extends Thread{
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             // Create Chat instance
-            ClientChat chat = new ClientChat(socket);
+            ClientChat chat = startChat(socket, socketAddress);;
 
             // Send Request
             chat.sendObjectData(listenerServerSocket.getLocalSocketAddress());
 
-            connectedChats.add(chat);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -60,46 +73,33 @@ public class ClientListener extends Thread{
 
     public void listenToConnection() throws IOException, ClassNotFoundException {
         // TODO! Cleanup
-        while (true) {
-            // Start listening for connections
-            Socket socket = listenerServerSocket.accept();
-            System.out.println("New client connection request");
-            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-            InputStream input = socket.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-            ObjectInputStream objectReader = new ObjectInputStream(socket.getInputStream());
 
-            // Receive Data
-            SocketAddress address = (SocketAddress) objectReader.readObject();
-            System.out.println(address);
+        // Start listening for connections
+        Socket socket = listenerServerSocket.accept();
+        System.out.println("New client connection request");
+//        PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+        InputStream input = socket.getInputStream();
+//        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+        ObjectInputStream objectReader = new ObjectInputStream(socket.getInputStream());
 
-            pendingSockets.put(address, socket);
-            updatePendingConnections();
+        // Receive Data
+        SocketAddress address = (SocketAddress) objectReader.readObject();
+        System.out.println(address);
 
-            // TODO!!! Implement accepting/declining new connections
-            // Accept or decline connection
-            boolean accept = true;
-            if (!accept) {
-                socket.close();
-                continue;
-            }
-
-            // Send Approval confirmation
-            writer.println("accepted");
-
-            //TODO!!! Create Chat instance
-            // Start new Chat instance and add it to the list
-//            ClientChat chat = new ClientChat(socket, reader, writer);
-//            connectedChats.add(chat);
-
-//            chat.start();
+        // CHECK FOR EXISTING PENDING CONNECTION AND CLIENTCHAT FROM THIS ADDRESS
+        if(pendingSockets.containsKey(address) || connectedChats.containsKey(address)){
+            socket.close();
+            return;
         }
+
+        pendingSockets.put(address, socket);
+        updatePendingConnections();
     }
 
     public void acceptRequest(SocketAddress address) {
         Socket socket = pendingSockets.get(address);
         try {
-            connectedChats.add(new ClientChat(socket)); //TODO handle this!
+            startChat(socket, address);
         } catch (IOException e) {
             System.out.println(e.getMessage());
         } finally {
@@ -137,12 +137,12 @@ public class ClientListener extends Thread{
         return pendingSockets;
     }
 
-    private SocketAddress resolveAddress(String address) {
+    private ClientChat startChat(Socket socket, SocketAddress address) throws IOException {
+        ClientChat chat = new ClientChat(socket, address);
+        chat.connectedChats = this.connectedChats;
+        connectedChats.put(address, chat); //TODO handle this!
+        chat.start();
 
-        String ipAddress = address.substring(0, address.indexOf(':'));
-        int port = Integer.parseInt(address.substring(address.indexOf(':') + 1));
-
-        return new InetSocketAddress(ipAddress, port);
-
+        return chat;
     }
 }

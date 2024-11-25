@@ -38,7 +38,7 @@ public class HelloApplication extends Application {
 
         // Close all threads
         if (client.clientListener != null) {
-            client.clientListener.listenerServerSocket.close();
+            client.clientListener.close();
         }
     }
 
