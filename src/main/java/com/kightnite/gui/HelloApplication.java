@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import main.java.com.kightnite.client.Client;
+import main.java.com.kightnite.events.ChatListener;
 
 import java.io.IOException;
 
@@ -25,7 +26,19 @@ public class HelloApplication extends Application {
         controller.setClient(this.client);
 
         // Add listener
-        client.clientListener.addPendingConnectionListener(controller::onPendingConnection);
+//        client.clientListener.addPendingConnectionListener(controller::onPendingConnection);
+
+        client.clientConnection.addPendingConnectionListener(new ChatListener() {
+            @Override
+            public void onNewConnection() {
+                controller.onPendingConnection();
+            }
+
+            @Override
+            public void onNewMessage() {
+                controller.onNewMessage();
+            }
+        });
 
         stage.setTitle("P2PChat");
         stage.setScene(scene);
@@ -37,8 +50,8 @@ public class HelloApplication extends Application {
         super.stop();
 
         // Close all threads
-        if (client.clientListener != null) {
-            client.clientListener.close();
+        if (client.clientConnection != null) {
+            client.clientConnection.close();
         }
     }
 

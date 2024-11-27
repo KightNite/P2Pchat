@@ -1,7 +1,7 @@
 package main.java.com.kightnite.client;
 
 import javafx.application.Platform;
-import main.java.com.kightnite.events.PendingConnectionListener;
+import main.java.com.kightnite.events.ChatListener;
 
 import java.io.*;
 import java.net.*;
@@ -9,17 +9,17 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-public class ClientListener extends Thread{
+public class ClientConnection extends Thread{
     public ServerSocket listenerServerSocket;
-    public Hashtable<SocketAddress, ClientChat> connectedChats;
+    public Hashtable<SocketAddress, ClientChatThread> connectedChats;
     private Hashtable<SocketAddress, Socket> pendingSockets;
-    private List<PendingConnectionListener> pendingConnectionListeners;
+    private List<ChatListener> chatListeners;
 
-    public ClientListener(ServerSocket serverSocket) {
+    public ClientConnection(ServerSocket serverSocket) {
         listenerServerSocket = serverSocket;
         connectedChats = new Hashtable<>();
         pendingSockets = new Hashtable<>();
-        pendingConnectionListeners = new ArrayList<>();
+        chatListeners = new ArrayList<>();
     }
 
     @Override
@@ -40,7 +40,7 @@ public class ClientListener extends Thread{
     public void close() throws IOException {
         listenerServerSocket.close();
 
-        for (ClientChat clientChat : connectedChats.values()) {
+        for (ClientChatThread clientChat : connectedChats.values()) {
             clientChat.close();
         }
     }
@@ -58,13 +58,14 @@ public class ClientListener extends Thread{
             // Connect to client
             socket.connect(socketAddress);
 //            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             // Create Chat instance
-            ClientChat chat = startChat(socket, socketAddress);;
+            startChat(socket, socketAddress);
 
             // Send Request
-            chat.sendObjectData(listenerServerSocket.getLocalSocketAddress());
+            ObjectOutputStream objectOutput = new ObjectOutputStream(socket.getOutputStream());
+            objectOutput.writeObject(listenerServerSocket.getLocalSocketAddress());
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -78,7 +79,7 @@ public class ClientListener extends Thread{
         Socket socket = listenerServerSocket.accept();
         System.out.println("New client connection request");
 //        PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-        InputStream input = socket.getInputStream();
+//        InputStream input = socket.getInputStream();
 //        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
         ObjectInputStream objectReader = new ObjectInputStream(socket.getInputStream());
 
@@ -99,7 +100,8 @@ public class ClientListener extends Thread{
     public void acceptRequest(SocketAddress address) {
         Socket socket = pendingSockets.get(address);
         try {
-            startChat(socket, address);
+            ClientChatThread chat = startChat(socket, address);
+            chat.sendData("Accepted");
         } catch (IOException e) {
             System.out.println(e.getMessage());
         } finally {
@@ -125,22 +127,22 @@ public class ClientListener extends Thread{
 
     public void updatePendingConnections() {
         Platform.runLater(() -> {
-            pendingConnectionListeners.forEach(PendingConnectionListener::onNewConnection);
+            chatListeners.forEach(ChatListener::onNewConnection);
         });
     }
 
-    public void addPendingConnectionListener(PendingConnectionListener listener) {
-        pendingConnectionListeners.add(listener);
+    public void addPendingConnectionListener(ChatListener listener) {
+        chatListeners.add(listener);
     }
 
     public Hashtable<SocketAddress, Socket> getPendingConnections() {
         return pendingSockets;
     }
 
-    private ClientChat startChat(Socket socket, SocketAddress address) throws IOException {
-        ClientChat chat = new ClientChat(socket, address);
+    private ClientChatThread startChat(Socket socket, SocketAddress address) throws IOException {
+        ClientChatThread chat = new ClientChatThread(socket, address, chatListeners);
         chat.connectedChats = this.connectedChats;
-        connectedChats.put(address, chat); //TODO handle this!
+        connectedChats.put(address, chat);
         chat.start();
 
         return chat;

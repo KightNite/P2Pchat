@@ -9,6 +9,7 @@ import javafx.scene.layout.GridPane;
 import main.java.com.kightnite.client.Client;
 import main.java.com.kightnite.model.ClientData;
 
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.List;
 
@@ -38,31 +39,63 @@ public class HelloController {
     }
 
     @FXML
-    protected void onConnectButtonClick(SocketAddress address) {
+    protected void onConnectButtonClick(SocketAddress address, Button button) {
         client.connectToPeer(address);
-
+        button.setDisable(true);
+        button.setText("Pending");
     }
 
     @FXML
     protected void onAcceptButtonClick(SocketAddress address) {
-        client.clientListener.acceptRequest(address);
+        client.clientConnection.acceptRequest(address);
     }
 
     @FXML
     protected void onRejectButtonClick(SocketAddress address) {
-        client.clientListener.rejectRequest(address);
+        client.clientConnection.rejectRequest(address);
+    }
+
+    @FXML
+    protected void onChatButtonClick(SocketAddress address) {
+        //TODO!!!
+    }
+
+    @FXML
+    protected void onCloseButtonClick(SocketAddress address) {
+        try {
+            client.clientConnection.connectedChats.get(address).close();
+        } catch (IOException e) {
+            System.out.println("I/O error: " + e.getMessage());
+        }
     }
 
     private GridPane createConnectionGrid(List<ClientData> connections) {
 
         GridPane gridConnections = new GridPane();
 
+        //TODO!!! Clean up
         for(int i=0; i<connections.size(); i++){
             SocketAddress address = connections.get(i).address;
 
             Button buttonConnect = new Button();
-            buttonConnect.setText("Connect");
-            buttonConnect.setOnAction(actionEvent -> onConnectButtonClick(address));
+            if (client.clientConnection.connectedChats.containsKey(address)) {
+                if (client.clientConnection.connectedChats.get(address).chatHistory.isEmpty()) {
+                    buttonConnect.setText("Pending");
+                    buttonConnect.setDisable(true);
+                } else {
+                    buttonConnect.setText("Chat");
+                    buttonConnect.setOnAction(actionEvent -> onChatButtonClick(address));
+
+                    Button buttonClose = new Button();
+                    buttonClose.setText("Close");
+                    buttonClose.setOnAction(actionEvent -> onCloseButtonClick(address));
+                    gridConnections.add(buttonClose, 2, i);
+                }
+            } else {
+                buttonConnect.setText("Connect");
+                buttonConnect.setOnAction(actionEvent -> onConnectButtonClick(address, buttonConnect));
+            }
+
 
             Label label = new Label();
             label.setText(connections.get(i).toString());
@@ -99,5 +132,9 @@ public class HelloController {
 
     protected void onPendingConnection() {
         onRerfreshButton();
+    }
+
+    protected void onNewMessage() {
+
     }
 }

@@ -17,7 +17,7 @@ public class Client {
     private Scanner scanner;
     private String name;
     private ServerSocket inviteServerSocket;
-    public ClientListener clientListener;
+    public ClientConnection clientConnection;
 
 
     public static void main(String[] args) {
@@ -106,8 +106,8 @@ public class Client {
     }
 
     private void startClientListener() {
-        this.clientListener = new ClientListener(inviteServerSocket);
-        clientListener.start();
+        this.clientConnection = new ClientConnection(inviteServerSocket);
+        clientConnection.start();
     }
 
     /// FOR DEBUG
@@ -132,7 +132,7 @@ public class Client {
     }
 
     public void connectToPeer(SocketAddress socketAddress) {
-        clientListener.connectToPeer(socketAddress);
+        clientConnection.connectToPeer(socketAddress);
     }
 
     public void close() {
@@ -149,7 +149,7 @@ public class Client {
         serverData = (List<ServerData>) objectInput.readObject();
 
         serverData.forEach(x -> clientData.add(new ClientData(x,
-                clientListener.getPendingConnections().containsKey(x.address))));
+                clientConnection.getPendingConnections().containsKey(x.address))));
         return clientData;
     }
 

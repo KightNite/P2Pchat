@@ -1,31 +1,32 @@
 package main.java.com.kightnite.client;
 
+import javafx.application.Platform;
+import main.java.com.kightnite.events.ChatListener;
+import main.java.com.kightnite.model.ChatMessage;
+
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
-public class ClientChat extends Thread{
-    //TODO!!! Close thread if socket closes (connection refused or chat closed)
+public class ClientChatThread extends Thread{
     public Socket socket;
     public SocketAddress socketAddress;
     public BufferedReader reader;
     public PrintWriter writer;
-    public ObjectOutputStream objectOutput;
-    public Hashtable<SocketAddress, ClientChat> connectedChats;
+    public Hashtable<SocketAddress, ClientChatThread> connectedChats;
+    private final List<ChatListener> chatListeners;
 
-    public ClientChat(Socket socket, SocketAddress socketAddress) throws IOException {
+    public List<ChatMessage> chatHistory = new ArrayList<>();
+
+    public ClientChatThread(Socket socket, SocketAddress socketAddress, List<ChatListener> chatListeners) throws IOException {
         this.socket = socket;
         this.socketAddress = socketAddress;
-        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         writer = new PrintWriter(socket.getOutputStream(), true);
-        objectOutput = new ObjectOutputStream(socket.getOutputStream());
-    }
-
-    public ClientChat(Socket socket, BufferedReader reader, PrintWriter writer) throws IOException {
-        this.socket = socket;
-        this.reader = reader;
-        this.writer = writer;
+        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        this.chatListeners = chatListeners;
     }
 
     @Override
@@ -37,21 +38,17 @@ public class ClientChat extends Thread{
                     break;
                 }
 
+                chatHistory.add(new ChatMessage(message));
                 System.out.println("ClientChat RECEIVED: " + message);
+
+                // Notify UI about new message.
+                updateChat();
             }
             System.out.println("ClientChat Stream Terminated");
         } catch (IOException e) {
             System.out.println("ClientPeerChat I/O error: " + e.getMessage());
         } finally {
-            System.out.println("----------------------------");
-            for (SocketAddress address : connectedChats.keySet()) {
-                System.out.println(address);
-            }
             connectedChats.remove(socketAddress);
-            System.out.println("----------------------------");
-            for (SocketAddress address : connectedChats.keySet()) {
-                System.out.println(address);
-            }
         }
     }
 
@@ -61,10 +58,13 @@ public class ClientChat extends Thread{
 
     public void sendData(String data) {
         System.out.println("ClientChat SENT: " + data);
+        chatHistory.add(new ChatMessage(data, true));
         writer.println(data);
     }
 
-    public void sendObjectData(Object data) throws IOException {
-        objectOutput.writeObject(data);
+    public void updateChat() {
+        Platform.runLater(() -> {
+            chatListeners.forEach(ChatListener::onNewMessage);
+        });
     }
 }
