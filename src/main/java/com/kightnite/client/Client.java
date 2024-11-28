@@ -131,8 +131,8 @@ public class Client {
         }
     }
 
-    public void connectToPeer(SocketAddress socketAddress) {
-        clientConnection.connectToPeer(socketAddress);
+    public boolean connectToPeer(SocketAddress socketAddress) {
+        return clientConnection.connectToPeer(socketAddress);
     }
 
     public void close() {

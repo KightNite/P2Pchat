@@ -48,6 +48,7 @@ public class ClientChatThread extends Thread{
         } catch (IOException e) {
             System.out.println("ClientPeerChat I/O error: " + e.getMessage());
         } finally {
+            notifyClose();
             connectedChats.remove(socketAddress);
         }
     }
@@ -56,15 +57,24 @@ public class ClientChatThread extends Thread{
         socket.close();
     }
 
-    public void sendData(String data) {
+    public ChatMessage sendData(String data) {
         System.out.println("ClientChat SENT: " + data);
-        chatHistory.add(new ChatMessage(data, true));
+        ChatMessage message = new ChatMessage(data, true);
+        chatHistory.add(message);
         writer.println(data);
+
+        return message;
     }
 
     public void updateChat() {
         Platform.runLater(() -> {
-            chatListeners.forEach(ChatListener::onNewMessage);
+            chatListeners.forEach(x -> x.onNewMessage(socketAddress));
+        });
+    }
+
+    public void notifyClose() {
+        Platform.runLater(() -> {
+            chatListeners.forEach(x -> x.onConnectionClose(socketAddress));
         });
     }
 }

@@ -45,11 +45,11 @@ public class ClientConnection extends Thread{
         }
     }
 
-    public void connectToPeer(SocketAddress socketAddress) {
+    public boolean connectToPeer(SocketAddress socketAddress) {
         // TODO! Cleanup
         // CHECK FOR EXISTING PENDING CONNECTION TO THIS ADDRESS
         if(pendingSockets.containsKey(socketAddress) || connectedChats.containsKey(socketAddress)){
-            return;
+            return false;
         }
 
         try {
@@ -68,8 +68,9 @@ public class ClientConnection extends Thread{
             objectOutput.writeObject(listenerServerSocket.getLocalSocketAddress());
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return false;
         }
+        return true;
     }
 
     public void listenToConnection() throws IOException, ClassNotFoundException {

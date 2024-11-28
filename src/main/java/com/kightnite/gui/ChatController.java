@@ -5,23 +5,38 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import main.java.com.kightnite.client.Client;
+import main.java.com.kightnite.model.ChatMessage;
 import main.java.com.kightnite.model.ClientData;
 
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.List;
+import java.util.Objects;
 
-public class HelloController {
+public class ChatController {
 
     @FXML
     public ScrollPane scrollPane;
-
     @FXML
     private Label welcomeText;
 
+    @FXML
+    public Label chatLabel;
+    @FXML
+    public TextArea chatHistory;
+    @FXML
+    public TextArea chatText;
+    @FXML
+    public Button chatSend;
+
+
+
     Client client;
+
+    ClientData currentChat = null;
 
     @FXML
     protected void onRerfreshButton() {
@@ -40,14 +55,18 @@ public class HelloController {
 
     @FXML
     protected void onConnectButtonClick(SocketAddress address, Button button) {
-        client.connectToPeer(address);
+        if (!client.connectToPeer(address)) {
+            onRerfreshButton();
+            return;
+        }
         button.setDisable(true);
         button.setText("Pending");
     }
 
     @FXML
-    protected void onAcceptButtonClick(SocketAddress address) {
-        client.clientConnection.acceptRequest(address);
+    protected void onAcceptButtonClick(ClientData data) {
+        client.clientConnection.acceptRequest(data.address);
+        onChatButtonClick(data);
     }
 
     @FXML
@@ -56,8 +75,30 @@ public class HelloController {
     }
 
     @FXML
-    protected void onChatButtonClick(SocketAddress address) {
+    protected void onChatButtonClick(ClientData data) {
         //TODO!!!
+        currentChat = data;
+
+        // Set name of user you chat with
+        chatLabel.setText("Chat with " + data.data);
+
+        // Get chat history and display it
+        List<ChatMessage> chatBox = getChatHistory(data.address);
+
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < chatBox.size(); i++) {
+            String sender = chatBox.get(i).isSender ? "You" : data.data;
+            text    .append("[")
+                    .append(chatBox.get(i).time.toString())
+                    .append("] ")
+                    .append(sender)
+                    .append(": ")
+                    .append(chatBox.get(i).message)
+                    .append("\n");
+        }
+
+        chatSend.setDisable(false);
+        chatHistory.setText(text.toString());
     }
 
     @FXML
@@ -69,6 +110,24 @@ public class HelloController {
         }
     }
 
+    @FXML
+    public void onSendButton() {
+        if (chatText.getText().isEmpty()) { return; }
+        ChatMessage message = client.clientConnection.connectedChats.get(currentChat.address).sendData(chatText.getText());
+
+        StringBuilder text = new StringBuilder();
+            text    .append("[")
+                    .append(message.time.toString())
+                    .append("] ")
+                    .append("You")
+                    .append(": ")
+                    .append(message.message)
+                    .append("\n");
+
+        chatHistory.setText(chatHistory.getText() + text);
+        chatText.setText("");
+    }
+
     private GridPane createConnectionGrid(List<ClientData> connections) {
 
         GridPane gridConnections = new GridPane();
@@ -76,6 +135,7 @@ public class HelloController {
         //TODO!!! Clean up
         for(int i=0; i<connections.size(); i++){
             SocketAddress address = connections.get(i).address;
+            ClientData data = connections.get(i);
 
             Button buttonConnect = new Button();
             if (client.clientConnection.connectedChats.containsKey(address)) {
@@ -84,7 +144,7 @@ public class HelloController {
                     buttonConnect.setDisable(true);
                 } else {
                     buttonConnect.setText("Chat");
-                    buttonConnect.setOnAction(actionEvent -> onChatButtonClick(address));
+                    buttonConnect.setOnAction(actionEvent -> onChatButtonClick(data));
 
                     Button buttonClose = new Button();
                     buttonClose.setText("Close");
@@ -108,7 +168,7 @@ public class HelloController {
             if (connections.get(i).isPending) {
                 Button buttonAccept = new Button();
                 buttonAccept.setText("Accept");
-                buttonAccept.setOnAction(actionEvent -> onAcceptButtonClick(address));
+                buttonAccept.setOnAction(actionEvent -> onAcceptButtonClick(data));
 
                 Button buttonReject = new Button();
                 buttonReject.setText("Reject");
@@ -130,11 +190,34 @@ public class HelloController {
         this.client = client;
     }
 
+    protected List<ChatMessage> getChatHistory(SocketAddress address) {
+
+        return client.clientConnection.connectedChats.get(address).chatHistory;
+    }
+
     protected void onPendingConnection() {
         onRerfreshButton();
     }
 
-    protected void onNewMessage() {
+    protected void onNewMessage(SocketAddress senderAddress) {
+        if (currentChat != null && Objects.equals(currentChat.address, senderAddress)) {
+            onChatButtonClick(currentChat);
+        }
+        else {
+            onRerfreshButton();
+        }
+    }
 
+    protected void onConnectionClose(SocketAddress senderAddress) {
+        if (currentChat != null && Objects.equals(currentChat.address, senderAddress)) {
+            endChatWindow();
+        }
+        onRerfreshButton();
+    }
+
+    private void endChatWindow() {
+        currentChat = null;
+        chatHistory.setText(chatHistory.getText() + "CONNECTION CLOSED");
+        chatSend.setDisable(true);
     }
 }

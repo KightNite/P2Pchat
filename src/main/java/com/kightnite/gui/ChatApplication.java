@@ -8,8 +8,9 @@ import main.java.com.kightnite.client.Client;
 import main.java.com.kightnite.events.ChatListener;
 
 import java.io.IOException;
+import java.net.SocketAddress;
 
-public class HelloApplication extends Application {
+public class ChatApplication extends Application {
     private Client client;
 
     @Override
@@ -18,11 +19,11 @@ public class HelloApplication extends Application {
         this.client = new Client();
         client.startClient("App");
 
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/com/kightnite/P2Pchat/hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ChatApplication.class.getResource("/com/kightnite/P2Pchat/hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 800, 400);
         scene.getStylesheets().add("/com/kightnite/P2Pchat/stylesheet.css");
 
-        HelloController controller = fxmlLoader.getController();
+        ChatController controller = fxmlLoader.getController();
         controller.setClient(this.client);
 
         // Add listener
@@ -35,8 +36,13 @@ public class HelloApplication extends Application {
             }
 
             @Override
-            public void onNewMessage() {
-                controller.onNewMessage();
+            public void onNewMessage(SocketAddress senderAddress) {
+                controller.onNewMessage(senderAddress);
+            }
+
+            @Override
+            public void onConnectionClose(SocketAddress senderAddress) {
+                controller.onConnectionClose(senderAddress);
             }
         });
 

@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<HBox alignment="TOP_LEFT" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.java.com.kightnite.gui.HelloController">
+<HBox alignment="TOP_LEFT" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.java.com.kightnite.gui.ChatController">
 
   <VBox alignment="TOP_LEFT" prefWidth="300.0" spacing="20.0" styleClass="vbox1" VBox.vgrow="ALWAYS">
       <HBox alignment="CENTER_LEFT">
@@ -40,28 +40,31 @@
       </padding>
   </VBox>
 
-  <VBox alignment="TOP_LEFT" prefHeight="400" HBox.hgrow="ALWAYS">
-    <Label text="CHAT" />
-      <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="ALL_TABS" VBox.vgrow="ALWAYS">
-        <tabs>
-          <Tab text="Untitled Tab 1" />
-          <Tab text="Untitled Tab 2" />
-        </tabs>
-         <VBox.margin>
-            <Insets top="10.0" />
-         </VBox.margin>
-      </TabPane>
-    <HBox alignment="BOTTOM_LEFT">
-      <TextArea HBox.hgrow="ALWAYS" />
+  <VBox alignment="TOP_LEFT" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+    <Label text="CHAT" fx:id="chatLabel" VBox.vgrow="ALWAYS">
          <padding>
+            <Insets top="5.0" />
+         </padding></Label>
+       <TextArea fx:id="chatHistory" VBox.vgrow="ALWAYS" editable="false">
+         <VBox.margin>
+            <Insets top="5.0" />
+         </VBox.margin></TextArea>
+
+    <HBox alignment="CENTER">
+      <TextArea fx:id="chatText" prefHeight="80.0" HBox.hgrow="ALWAYS">
+            <HBox.margin>
+               <Insets right="5.0" />
+            </HBox.margin></TextArea>
+         <Button fx:id="chatSend" onAction="#onSendButton" disable="true" maxHeight="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" text="Send" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+            <HBox.margin>
+               <Insets />
+            </HBox.margin></Button>
+         <VBox.margin>
             <Insets top="20.0" />
-         </padding>
+         </VBox.margin>
     </HBox>
       <HBox.margin>
-         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         <Insets bottom="10.0" left="5.0" right="10.0" top="10.0" />
       </HBox.margin>
-      <padding>
-         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-      </padding>
   </VBox>
 </HBox>
