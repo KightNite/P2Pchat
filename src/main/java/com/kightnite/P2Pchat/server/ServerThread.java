@@ -1,6 +1,6 @@
-package main.java.com.kightnite.server;
+package com.kightnite.p2pchat.server;
 
-import main.java.com.kightnite.model.ServerData;
+import com.kightnite.p2pchat.model.ServerData;
 
 import java.io.*;
 import java.net.Socket;

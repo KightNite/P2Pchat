@@ -1,4 +1,4 @@
-package main.java.com.kightnite.events;
+package com.kightnite.p2pchat.events;
 
 import java.net.SocketAddress;
 

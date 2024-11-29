@@ -1,8 +1,8 @@
-package main.java.com.kightnite.client;
+package com.kightnite.p2pchat.client;
 
 import javafx.application.Platform;
-import main.java.com.kightnite.events.ChatListener;
-import main.java.com.kightnite.model.ChatMessage;
+import com.kightnite.p2pchat.events.ChatListener;
+import com.kightnite.p2pchat.model.ChatMessage;
 
 import java.io.*;
 import java.net.Socket;

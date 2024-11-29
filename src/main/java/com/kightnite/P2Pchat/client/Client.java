@@ -1,7 +1,7 @@
-package main.java.com.kightnite.client;
+package com.kightnite.p2pchat.client;
 
-import main.java.com.kightnite.model.ClientData;
-import main.java.com.kightnite.model.ServerData;
+import com.kightnite.p2pchat.model.ClientData;
+import com.kightnite.p2pchat.model.ServerData;
 
 import java.io.*;
 import java.net.*;
@@ -16,6 +16,8 @@ public class Client {
     private ObjectInputStream objectInput;
     private Scanner scanner;
     private String name;
+    private String hostname;
+    private int port;
     private ServerSocket inviteServerSocket;
     public ClientConnection clientConnection;
 
@@ -27,15 +29,15 @@ public class Client {
         client.console();
     }
 
-    public void startClient(String name) {
+    public void startClient(String name, String hostname, int port) {
         this.name = name;
+        this.hostname = hostname;
+        this.port = port;
         run();
     }
 
     public void run() {
         this.scanner = new Scanner(System.in);
-        String hostname = "localhost";
-        int port = 9090;
 
         try {
             this.socket = new Socket(hostname, port);

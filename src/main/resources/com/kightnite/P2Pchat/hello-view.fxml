@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<HBox alignment="TOP_LEFT" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.java.com.kightnite.gui.ChatController">
+<HBox alignment="TOP_LEFT" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.kightnite.p2pchat.gui.ChatController">
 
   <VBox alignment="TOP_LEFT" prefWidth="300.0" spacing="20.0" styleClass="vbox1" VBox.vgrow="ALWAYS">
       <HBox alignment="CENTER_LEFT">

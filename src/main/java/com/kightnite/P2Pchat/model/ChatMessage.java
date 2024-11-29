@@ -1,4 +1,4 @@
-package main.java.com.kightnite.model;
+package com.kightnite.p2pchat.model;
 
 import java.util.Date;
 

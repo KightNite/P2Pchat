@@ -1,4 +1,4 @@
-package main.java.com.kightnite.gui;
+package com.kightnite.p2pchat.gui;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -7,9 +7,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
-import main.java.com.kightnite.client.Client;
-import main.java.com.kightnite.model.ChatMessage;
-import main.java.com.kightnite.model.ClientData;
+import com.kightnite.p2pchat.client.Client;
+import com.kightnite.p2pchat.model.ChatMessage;
+import com.kightnite.p2pchat.model.ClientData;
 
 import java.io.IOException;
 import java.net.SocketAddress;
