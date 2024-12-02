@@ -151,7 +151,7 @@ public class Client {
         serverData = (List<ServerData>) objectInput.readObject();
 
         serverData.forEach(x -> clientData.add(new ClientData(x,
-                clientConnection.getPendingConnections().containsKey(x.address))));
+                false)));
         return clientData;
     }
 

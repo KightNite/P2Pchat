@@ -12,6 +12,8 @@ import java.util.Hashtable;
 import java.util.List;
 
 public class ClientChatThread extends Thread{
+    public boolean isPending;
+
     public Socket socket;
     public SocketAddress socketAddress;
     public BufferedReader reader;

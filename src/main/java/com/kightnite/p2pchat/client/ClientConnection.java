@@ -12,13 +12,11 @@ import java.util.List;
 public class ClientConnection extends Thread{
     public ServerSocket listenerServerSocket;
     public Hashtable<SocketAddress, ClientChatThread> connectedChats;
-    private Hashtable<SocketAddress, Socket> pendingSockets;
     private List<ChatListener> chatListeners;
 
     public ClientConnection(ServerSocket serverSocket) {
         listenerServerSocket = serverSocket;
         connectedChats = new Hashtable<>();
-        pendingSockets = new Hashtable<>();
         chatListeners = new ArrayList<>();
     }
 
@@ -48,7 +46,7 @@ public class ClientConnection extends Thread{
     public boolean connectToPeer(SocketAddress socketAddress) {
         // TODO! Cleanup
         // CHECK FOR EXISTING PENDING CONNECTION TO THIS ADDRESS
-        if(pendingSockets.containsKey(socketAddress) || connectedChats.containsKey(socketAddress)){
+        if(connectedChats.containsKey(socketAddress)){
             return false;
         }
 
@@ -89,24 +87,25 @@ public class ClientConnection extends Thread{
         System.out.println(address);
 
         // CHECK FOR EXISTING PENDING CONNECTION AND CLIENTCHAT FROM THIS ADDRESS
-        if(pendingSockets.containsKey(address) || connectedChats.containsKey(address)){
+        if(connectedChats.containsKey(address)){
             socket.close();
             return;
         }
 
-        pendingSockets.put(address, socket);
+        ClientChatThread chat = startChat(socket, address);
+        chat.isPending = true;
         updatePendingConnections();
     }
 
     public void acceptRequest(SocketAddress address) {
-        Socket socket = pendingSockets.get(address);
+        Socket socket = connectedChats.get(address).socket;
         try {
             ClientChatThread chat = startChat(socket, address);
             chat.sendData("Accepted");
         } catch (IOException e) {
             System.out.println(e.getMessage());
         } finally {
-            pendingSockets.remove(address);
+            connectedChats.get(address).isPending = false;
             updatePendingConnections();
             //DEBUG
             System.out.println("Chat Request Accepted");
@@ -114,13 +113,12 @@ public class ClientConnection extends Thread{
     }
 
     public void rejectRequest(SocketAddress address) {
-        Socket socket = pendingSockets.get(address);
+        Socket socket = connectedChats.get(address).socket;
         try {
             socket.close();
         } catch (IOException e) {
             System.out.println(e.getMessage());
         } finally {
-            pendingSockets.remove(address);
             updatePendingConnections();
             System.out.println("Chat Request Rejected");
         }
@@ -137,7 +135,7 @@ public class ClientConnection extends Thread{
     }
 
     public Hashtable<SocketAddress, Socket> getPendingConnections() {
-        return pendingSockets;
+        return null;
     }
 
     private ClientChatThread startChat(Socket socket, SocketAddress address) throws IOException {

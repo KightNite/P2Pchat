@@ -43,8 +43,9 @@ public class ChatController {
 
         List<ClientData> connections = client.ping();
 
+        System.out.println("Client Connections:");
         for (ClientData connection : connections) {
-            System.out.println(connection);
+            System.out.println(connection + " " + connection.isPending);
         }
 
         scrollPane.setContent(createConnectionGrid(connections));
@@ -139,7 +140,17 @@ public class ChatController {
 
             Button buttonConnect = new Button();
             if (client.clientConnection.connectedChats.containsKey(address)) {
-                if (client.clientConnection.connectedChats.get(address).chatHistory.isEmpty()) {
+                if (client.clientConnection.connectedChats.get(address).isPending) {
+                    buttonConnect.setText("Accept");
+                    buttonConnect.setOnAction(actionEvent -> onAcceptButtonClick(data));
+
+                    Button buttonReject = new Button();
+                    buttonReject.setText("Reject");
+                    buttonReject.setOnAction(actionEvent -> onRejectButtonClick(address));
+
+                    gridConnections.add(buttonReject, 1, i);
+                }
+                else if (client.clientConnection.connectedChats.get(address).chatHistory.isEmpty()) {
                     buttonConnect.setText("Pending");
                     buttonConnect.setDisable(true);
                 } else {
@@ -165,18 +176,7 @@ public class ChatController {
             gridConnections.add(buttonConnect, 0, i); //  (child, columnIndex, rowIndex)
             gridConnections.add(label , 3, i);
 
-            if (connections.get(i).isPending) {
-                Button buttonAccept = new Button();
-                buttonAccept.setText("Accept");
-                buttonAccept.setOnAction(actionEvent -> onAcceptButtonClick(data));
 
-                Button buttonReject = new Button();
-                buttonReject.setText("Reject");
-                buttonReject.setOnAction(actionEvent -> onRejectButtonClick(address));
-
-                gridConnections.add(buttonAccept, 1, i);
-                gridConnections.add(buttonReject, 2, i);
-            }
 
             // margins are up to your preference
             GridPane.setMargin(buttonConnect, new Insets(5));
