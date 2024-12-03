@@ -2,6 +2,7 @@ package com.kightnite.p2pchat.client;
 
 import com.kightnite.p2pchat.model.ClientData;
 import com.kightnite.p2pchat.model.ServerData;
+import com.kightnite.p2pchat.util.Util;
 
 import java.io.*;
 import java.net.*;
@@ -15,22 +16,29 @@ public class Client {
     private PrintWriter writer;
     private ObjectInputStream objectInput;
     private Scanner scanner;
-    private String name;
+
+    public final String name;
+    private final String uuid;
+
     private String hostname;
     private int port;
     private ServerSocket inviteServerSocket;
     public ClientConnection clientConnection;
 
+    public Client() {
+        String[] userData = Util.getUserData();
+        name = userData[0];
+        uuid = userData[1];
+    }
+
 
     public static void main(String[] args) {
         Client client = new Client();
-        client.name = "Unknown";
         client.run();
         client.console();
     }
 
-    public void startClient(String name, String hostname, int port) {
-        this.name = name;
+    public void startClient(String hostname, int port) {
         this.hostname = hostname;
         this.port = port;
         run();
@@ -41,10 +49,6 @@ public class Client {
 
         try {
             this.socket = new Socket(hostname, port);
-
-            this.name += " " + socket.getLocalPort();
-
-            String result = null;
 
             //OUTCOMING MESSAGE
             OutputStream output = socket.getOutputStream();

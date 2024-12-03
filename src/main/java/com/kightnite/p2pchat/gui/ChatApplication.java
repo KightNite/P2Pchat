@@ -33,7 +33,7 @@ public class ChatApplication extends Application {
 
         // Initialize Client
         this.client = new Client();
-        client.startClient("App", hostname, port);
+        client.startClient(hostname, port);
 
         FXMLLoader fxmlLoader = new FXMLLoader(ChatApplication.class.getResource("/com/kightnite/p2pchat/hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 800, 400);

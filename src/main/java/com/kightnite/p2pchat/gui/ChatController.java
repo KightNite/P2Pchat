@@ -57,7 +57,7 @@ public class ChatController {
 //        scrollPane.setContent(createConnectionGrid(connections));
         scrollPane.setContent(createConnectionVBox(connections));
 
-        welcomeText.setText("Refreshing...");
+//        welcomeText.setText("Refreshing...");
 
     }
 
@@ -269,6 +269,7 @@ public class ChatController {
 
     protected void setClient(Client client) {
         this.client = client;
+        this.welcomeText.setText(client.name);
     }
 
     protected List<ChatMessage> getChatHistory(SocketAddress address) {
