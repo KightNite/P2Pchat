@@ -98,18 +98,14 @@ public class ClientConnection extends Thread{
     }
 
     public void acceptRequest(SocketAddress address) {
-        Socket socket = connectedChats.get(address).socket;
-        try {
-            ClientChatThread chat = startChat(socket, address);
-            chat.sendData("Accepted");
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        } finally {
-            connectedChats.get(address).isPending = false;
-            updatePendingConnections();
-            //DEBUG
-            System.out.println("Chat Request Accepted");
-        }
+        ClientChatThread chat = connectedChats.get(address);
+        chat.sendData("Accepted");
+
+        connectedChats.get(address).isPending = false;
+        updatePendingConnections();
+
+        //DEBUG
+        System.out.println("Chat Request Accepted");
     }
 
     public void rejectRequest(SocketAddress address) {
@@ -139,11 +135,15 @@ public class ClientConnection extends Thread{
     }
 
     private ClientChatThread startChat(Socket socket, SocketAddress address) throws IOException {
-        ClientChatThread chat = new ClientChatThread(socket, address, chatListeners);
-        chat.connectedChats = this.connectedChats;
-        connectedChats.put(address, chat);
-        chat.start();
-
-        return chat;
+        try {
+            ClientChatThread chat = new ClientChatThread(socket, address, chatListeners);
+            chat.connectedChats = this.connectedChats;
+            connectedChats.put(address, chat);
+            chat.start();
+            return chat;
+        } catch (IOException e) {
+            //TODO
+            throw new RuntimeException(e);
+        }
     }
 }
