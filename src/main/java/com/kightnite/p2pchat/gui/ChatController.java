@@ -1,7 +1,10 @@
 package com.kightnite.p2pchat.gui;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -10,6 +13,9 @@ import javafx.scene.layout.GridPane;
 import com.kightnite.p2pchat.client.Client;
 import com.kightnite.p2pchat.model.ChatMessage;
 import com.kightnite.p2pchat.model.ClientData;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -48,7 +54,8 @@ public class ChatController {
             System.out.println(connection + " " + connection.isPending);
         }
 
-        scrollPane.setContent(createConnectionGrid(connections));
+//        scrollPane.setContent(createConnectionGrid(connections));
+        scrollPane.setContent(createConnectionVBox(connections));
 
         welcomeText.setText("Refreshing...");
 
@@ -127,6 +134,80 @@ public class ChatController {
 
         chatHistory.setText(chatHistory.getText() + text);
         chatText.setText("");
+    }
+
+    private VBox createConnectionVBox(List<ClientData> connections) {
+        VBox vbox = new VBox(5);
+
+        for(int i=0; i<connections.size(); i++) {
+            SocketAddress address = connections.get(i).address;
+            ClientData data = connections.get(i);
+
+            vbox.getChildren().add(createConnectionRowHBox(address, data));
+        }
+
+
+        return vbox;
+    }
+
+    private HBox createConnectionRowHBox(SocketAddress address, ClientData data) {
+        HBox hbox = new HBox();
+        hbox.setAlignment(Pos.CENTER_LEFT);
+
+        if (client.clientConnection.connectedChats.containsKey(address)) {
+            if (client.clientConnection.connectedChats.get(address).isPending) {
+                Button buttonConnect = createButton("Accept", actionEvent -> onAcceptButtonClick(data));
+                Button buttonReject = createButton("Reject", actionEvent -> onRejectButtonClick(address));
+
+                hbox.getChildren().addAll(buttonConnect, buttonReject);
+            }
+            else if (client.clientConnection.connectedChats.get(address).chatHistory.isEmpty()) {
+                Button buttonConnect = createButton("Pending", actionEvent -> onAcceptButtonClick(data));
+                buttonConnect.setDisable(true);
+
+                hbox.getChildren().add(buttonConnect);
+            } else {
+                Button buttonConnect = createButton("Chat", actionEvent -> onChatButtonClick(data));
+                Button buttonClose = createButton("Close", actionEvent -> onCloseButtonClick(address));
+
+                hbox.getChildren().addAll(buttonConnect, buttonClose);
+            }
+        } else {
+            Button buttonConnect = createConnectButton("Connect", address);
+
+            hbox.getChildren().add(buttonConnect);
+        }
+
+
+        Label label = new Label();
+        label.setText(data.toString());
+        label.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(label, Priority.ALWAYS);
+
+        hbox.getChildren().add(label);
+
+        // margins are up to your preference
+//        GridPane.setMargin(buttonConnect, new Insets(5));
+//        GridPane.setMargin(label, new Insets(5));
+
+
+        return hbox;
+    }
+
+    private Button createButton(String text, EventHandler<ActionEvent> actionEvent) {
+        Button button = new Button();
+        button.setText(text);
+        button.setOnAction(actionEvent);
+
+        return button;
+    }
+
+    private Button createConnectButton(String text, SocketAddress address) {
+        Button button = new Button();
+        button.setText(text);
+        button.setOnAction(actionEvent -> onConnectButtonClick(address, button));
+
+        return button;
     }
 
     private GridPane createConnectionGrid(List<ClientData> connections) {
