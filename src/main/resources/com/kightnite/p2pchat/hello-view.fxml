@@ -10,7 +10,7 @@
       <HBox alignment="CENTER_LEFT">
          <children>
       
-          <Button onAction="#onRerfreshButton" text="Refresh" HBox.hgrow="ALWAYS">
+          <Button onAction="#onRefreshButton" text="Refresh" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets right="10.0" />
                </HBox.margin>

@@ -44,7 +44,7 @@ public class ChatController {
     ClientData currentChat = null;
 
     @FXML
-    protected void onRerfreshButton() {
+    protected void onRefreshButton() {
 
         List<ClientData> connections = client.ping();
 
@@ -63,7 +63,7 @@ public class ChatController {
     @FXML
     protected void onConnectButtonClick(SocketAddress address, Button button) {
         if (!client.connectToPeer(address)) {
-            onRerfreshButton();
+            onRefreshButton();
             return;
         }
         button.setDisable(true);
@@ -268,7 +268,7 @@ public class ChatController {
     }
 
     protected void onPendingConnection() {
-        onRerfreshButton();
+        onRefreshButton();
     }
 
     protected void onNewMessage(SocketAddress senderAddress) {
@@ -276,7 +276,7 @@ public class ChatController {
             onChatButtonClick(currentChat);
         }
         else {
-            onRerfreshButton();
+            onRefreshButton();
         }
     }
 
@@ -284,7 +284,7 @@ public class ChatController {
         if (currentChat != null && Objects.equals(currentChat.address, senderAddress)) {
             endChatWindow();
         }
-        onRerfreshButton();
+        onRefreshButton();
     }
 
     private void endChatWindow() {
