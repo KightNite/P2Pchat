@@ -5,10 +5,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import com.kightnite.p2pchat.client.Client;
 import com.kightnite.p2pchat.model.ChatMessage;
@@ -16,9 +13,11 @@ import com.kightnite.p2pchat.model.ClientData;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -73,7 +72,7 @@ public class ChatController {
 
     @FXML
     protected void onAcceptButtonClick(ClientData data) {
-        client.clientConnection.acceptRequest(data.address);
+        client.clientConnection.acceptRequest(data);
         onChatButtonClick(data);
     }
 
@@ -95,14 +94,7 @@ public class ChatController {
 
         StringBuilder text = new StringBuilder();
         for (int i = 0; i < chatBox.size(); i++) {
-            String sender = chatBox.get(i).isSender ? "You" : data.data;
-            text    .append("[")
-                    .append(chatBox.get(i).time.toString())
-                    .append("] ")
-                    .append(sender)
-                    .append(": ")
-                    .append(chatBox.get(i).message)
-                    .append("\n");
+            text.append(chatBox.get(i).toString()).append("\n");
         }
 
         chatSend.setDisable(false);
@@ -121,18 +113,10 @@ public class ChatController {
     @FXML
     public void onSendButton() {
         if (chatText.getText().isEmpty()) { return; }
-        ChatMessage message = client.clientConnection.connectedChats.get(currentChat.address).sendData(chatText.getText());
+        ChatMessage message = new ChatMessage(chatText.getText(), Instant.now(), client.name);
+        client.clientConnection.connectedChats.get(currentChat.address).sendData(message);
 
-        StringBuilder text = new StringBuilder();
-            text    .append("[")
-                    .append(message.time.toString())
-                    .append("] ")
-                    .append("You")
-                    .append(": ")
-                    .append(message.message)
-                    .append("\n");
-
-        chatHistory.setText(chatHistory.getText() + text);
+        chatHistory.setText(chatHistory.getText() + message + "\n");
         chatText.setText("");
     }
 
@@ -140,47 +124,53 @@ public class ChatController {
         VBox vbox = new VBox(5);
 
         for(int i=0; i<connections.size(); i++) {
-            SocketAddress address = connections.get(i).address;
             ClientData data = connections.get(i);
 
-            vbox.getChildren().add(createConnectionRowHBox(address, data));
+            HBox hbox = createConnectionRowHBox(data);
+            vbox.getChildren().add(hbox);
         }
 
 
         return vbox;
     }
 
-    private HBox createConnectionRowHBox(SocketAddress address, ClientData data) {
-        HBox hbox = new HBox();
+    private HBox createConnectionRowHBox(ClientData data) {
+        HBox hbox = new HBox(5);
+        hbox.getStyleClass().add("connection");
         hbox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(hbox, Priority.ALWAYS);
 
-        if (client.clientConnection.connectedChats.containsKey(address)) {
-            if (client.clientConnection.connectedChats.get(address).isPending) {
+        Tooltip tooltip = new Tooltip(data.address.toString());
+        tooltip.setShowDelay(Duration.seconds(0.5));
+        Tooltip.install(hbox, tooltip);
+
+        if (client.clientConnection.connectedChats.containsKey(data.address)) {
+            if (client.clientConnection.connectedChats.get(data.address).isPending) {
                 Button buttonConnect = createButton("Accept", actionEvent -> onAcceptButtonClick(data));
-                Button buttonReject = createButton("Reject", actionEvent -> onRejectButtonClick(address));
+                Button buttonReject = createButton("Reject", actionEvent -> onRejectButtonClick(data.address));
 
                 hbox.getChildren().addAll(buttonConnect, buttonReject);
             }
-            else if (client.clientConnection.connectedChats.get(address).chatHistory.isEmpty()) {
+            else if (client.clientConnection.connectedChats.get(data.address).chatHistory.isEmpty()) {
                 Button buttonConnect = createButton("Pending", actionEvent -> onAcceptButtonClick(data));
                 buttonConnect.setDisable(true);
 
                 hbox.getChildren().add(buttonConnect);
             } else {
                 Button buttonConnect = createButton("Chat", actionEvent -> onChatButtonClick(data));
-                Button buttonClose = createButton("Close", actionEvent -> onCloseButtonClick(address));
+                Button buttonClose = createButton("Close", actionEvent -> onCloseButtonClick(data.address));
 
                 hbox.getChildren().addAll(buttonConnect, buttonClose);
             }
         } else {
-            Button buttonConnect = createConnectButton("Connect", address);
+            Button buttonConnect = createConnectButton("Connect", data.address);
 
             hbox.getChildren().add(buttonConnect);
         }
 
 
         Label label = new Label();
-        label.setText(data.toString());
+        label.setText(data.data);
         label.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(label, Priority.ALWAYS);
 

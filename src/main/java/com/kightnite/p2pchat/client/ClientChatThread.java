@@ -16,40 +16,34 @@ public class ClientChatThread extends Thread{
 
     public Socket socket;
     public SocketAddress socketAddress;
-    public BufferedReader reader;
-    public PrintWriter writer;
+    public ObjectInputStream objectReader;
+    public ObjectOutputStream objectWriter;
     public Hashtable<SocketAddress, ClientChatThread> connectedChats;
     private final List<ChatListener> chatListeners;
 
     public List<ChatMessage> chatHistory = new ArrayList<>();
 
-    public ClientChatThread(Socket socket, SocketAddress socketAddress, List<ChatListener> chatListeners) throws IOException {
+    public ClientChatThread(Socket socket,
+                            SocketAddress socketAddress,
+                            List<ChatListener> chatListeners) throws IOException {
         this.socket = socket;
         this.socketAddress = socketAddress;
-        writer = new PrintWriter(socket.getOutputStream(), true);
-        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.chatListeners = chatListeners;
+        objectWriter = new ObjectOutputStream(socket.getOutputStream());;
+        objectReader = new ObjectInputStream(socket.getInputStream());
     }
 
     @Override
     public void run() {
         try {
-            while (true) {
-                String message = reader.readLine();
-                if (message == null) {
-                    break;
-                }
-
-                chatHistory.add(new ChatMessage(message));
-                System.out.println("ClientChat RECEIVED: " + message);
-
-                // Notify UI about new message.
-                updateChat();
-            }
+            readData();
             System.out.println("ClientChat Stream Terminated");
         } catch (IOException e) {
-            System.out.println("ClientPeerChat I/O error: " + e.getMessage());
-        } finally {
+            System.out.println("ClientChat reading I/O error: " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        finally {
             notifyClose();
             connectedChats.remove(socketAddress);
         }
@@ -59,11 +53,29 @@ public class ClientChatThread extends Thread{
         socket.close();
     }
 
-    public ChatMessage sendData(String data) {
-        System.out.println("ClientChat SENT: " + data);
-        ChatMessage message = new ChatMessage(data, true);
-        chatHistory.add(message);
-        writer.println(data);
+    public void readData() throws IOException, ClassNotFoundException {
+        while (true) {
+            ChatMessage message = (ChatMessage) objectReader.readObject();
+            if (message == null) {
+                break;
+            }
+
+            chatHistory.add(message);
+            System.out.println("ClientChat RECEIVED: " + message);
+
+            // Notify UI about new message.
+            updateChat();
+        }
+    }
+
+    public ChatMessage sendData(ChatMessage message) {
+        try {
+            System.out.println("ClientChat SENT: " + message);
+            chatHistory.add(message);
+            objectWriter.writeObject(message);
+        } catch (IOException e) {
+            System.out.println("ClientChat writing I/O error: " + e.getMessage());
+        }
 
         return message;
     }

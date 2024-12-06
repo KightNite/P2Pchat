@@ -1,10 +1,13 @@
 package com.kightnite.p2pchat.client;
 
+import com.kightnite.p2pchat.model.ChatMessage;
+import com.kightnite.p2pchat.model.ClientData;
 import javafx.application.Platform;
 import com.kightnite.p2pchat.events.ChatListener;
 
 import java.io.*;
 import java.net.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -55,15 +58,13 @@ public class ClientConnection extends Thread{
 
             // Connect to client
             socket.connect(socketAddress);
-//            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            // Create Chat instance
-            startChat(socket, socketAddress);
 
             // Send Request
             ObjectOutputStream objectOutput = new ObjectOutputStream(socket.getOutputStream());
             objectOutput.writeObject(listenerServerSocket.getLocalSocketAddress());
+
+            // Create Chat instance
+            startChat(socket, socketAddress);
 
         } catch (IOException e) {
             return false;
@@ -77,9 +78,7 @@ public class ClientConnection extends Thread{
         // Start listening for connections
         Socket socket = listenerServerSocket.accept();
         System.out.println("New client connection request");
-//        PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-//        InputStream input = socket.getInputStream();
-//        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+
         ObjectInputStream objectReader = new ObjectInputStream(socket.getInputStream());
 
         // Receive Data
@@ -97,11 +96,11 @@ public class ClientConnection extends Thread{
         updatePendingConnections();
     }
 
-    public void acceptRequest(SocketAddress address) {
-        ClientChatThread chat = connectedChats.get(address);
-        chat.sendData("Accepted");
+    public void acceptRequest(ClientData data) {
+        ClientChatThread chat = connectedChats.get(data.address);
+        chat.sendData(new ChatMessage("Accepted", Instant.now(), ""));
 
-        connectedChats.get(address).isPending = false;
+        connectedChats.get(data.address).isPending = false;
         updatePendingConnections();
 
         //DEBUG

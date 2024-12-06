@@ -5,3 +5,13 @@
     -fx-border-width: 3;
     -fx-border-style: dashed;
 }
+
+.connection {
+    -fx-padding: 5;
+    -fx-background-color: lightgray;
+    -fx-border-color: darkblue;
+    -fx-border-insets: 0;
+    -fx-border-width: 1;
+    -fx-border-radius: 15 15 15 15;
+    -fx-background-radius: 15 15 15 15;
+}
