@@ -6,18 +6,17 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.*;
 import com.kightnite.p2pchat.client.Client;
 import com.kightnite.p2pchat.model.ChatMessage;
 import com.kightnite.p2pchat.model.ClientData;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.time.Instant;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,13 +38,14 @@ public class ChatController {
 
 
 
-    Client client;
+    private Client client;
 
-    ClientData currentChat = null;
+    private ClientData currentChat = null;
+
+    private final HashSet<SocketAddress> favourites = new HashSet<>();
 
     @FXML
     protected void onRefreshButton() {
-
         List<ClientData> connections = client.ping();
 
         System.out.println("Client Connections:");
@@ -53,11 +53,17 @@ public class ChatController {
             System.out.println(connection + " " + connection.isPending);
         }
 
-//        scrollPane.setContent(createConnectionGrid(connections));
         scrollPane.setContent(createConnectionVBox(connections));
+    }
 
-//        welcomeText.setText("Refreshing...");
+    protected void onFavouriteButtonClick(SocketAddress address) {
+        if (favourites.contains(address)) {
+            favourites.remove(address);
+        } else {
+            favourites.add(address);
+        }
 
+        onRefreshButton();
     }
 
     @FXML
@@ -123,7 +129,9 @@ public class ChatController {
     private VBox createConnectionVBox(List<ClientData> connections) {
         VBox vbox = new VBox(5);
 
-        for(int i=0; i<connections.size(); i++) {
+        connections.sort(Comparator.comparing(x -> !favourites.contains(x.address)));
+
+        for (int i=0; i<connections.size(); i++) {
             ClientData data = connections.get(i);
 
             HBox hbox = createConnectionRowHBox(data);
@@ -140,10 +148,12 @@ public class ChatController {
         hbox.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(hbox, Priority.ALWAYS);
 
+        // TODO! Change to ContextMenu
         Tooltip tooltip = new Tooltip(data.address.toString());
         tooltip.setShowDelay(Duration.seconds(0.5));
         Tooltip.install(hbox, tooltip);
 
+        // Create buttons based on current state with other connections
         if (client.clientConnection.connectedChats.containsKey(data.address)) {
             if (client.clientConnection.connectedChats.get(data.address).isPending) {
                 Button buttonConnect = createButton("Accept", actionEvent -> onAcceptButtonClick(data));
@@ -168,18 +178,21 @@ public class ChatController {
             hbox.getChildren().add(buttonConnect);
         }
 
-
+        // Client name label
         Label label = new Label();
         label.setText(data.data);
         label.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(label, Priority.ALWAYS);
-
         hbox.getChildren().add(label);
 
-        // margins are up to your preference
-//        GridPane.setMargin(buttonConnect, new Insets(5));
-//        GridPane.setMargin(label, new Insets(5));
+        // Create a region to act as a horizontal spacer
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        hbox.getChildren().add(spacer);
 
+        // Favourite button
+        Button button = createFavouriteButton(data.address);
+        hbox.getChildren().add(button);
 
         return hbox;
     }
@@ -188,6 +201,7 @@ public class ChatController {
         Button button = new Button();
         button.setText(text);
         button.setOnAction(actionEvent);
+        button.getStyleClass().add("connection-button");
 
         return button;
     }
@@ -196,7 +210,24 @@ public class ChatController {
         Button button = new Button();
         button.setText(text);
         button.setOnAction(actionEvent -> onConnectButtonClick(address, button));
+        button.getStyleClass().add("connection-button");
 
+        return button;
+    }
+
+    private Button createFavouriteButton(SocketAddress address) {
+        Region icon = new Region();
+        icon.getStyleClass().add("favourite-icon");
+        Button button = new Button();
+        button.getStyleClass().add("connection-button");
+        button.setOnAction(actionEvent -> onFavouriteButtonClick(address));
+        button.setGraphic(icon);
+
+        if (favourites.contains(address)) {
+            button.getStyleClass().add("unfavourite-button");
+        } else {
+            button.getStyleClass().add("favourite-button");
+        }
         return button;
     }
 

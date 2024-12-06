@@ -26,13 +26,13 @@
          </VBox.margin>
       </HBox>
 
-      <ScrollPane fx:id="scrollPane" VBox.vgrow="ALWAYS">
+      <ScrollPane fx:id="scrollPane" styleClass="connection-scrollpane" VBox.vgrow="ALWAYS" fitToWidth="true">
       </ScrollPane>
       <HBox.margin>
          <Insets bottom="10.0" left="10.0" right="5.0" top="10.0" />
       </HBox.margin>
       <padding>
-         <Insets right="5.0" />
+         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"  />
       </padding>
   </VBox>
 

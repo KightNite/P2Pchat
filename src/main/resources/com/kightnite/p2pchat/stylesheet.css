@@ -1,9 +1,6 @@
 
 .vbox1 {
-    -fx-border-color: black;
-    -fx-border-insets: 1;
-    -fx-border-width: 3;
-    -fx-border-style: dashed;
+    -fx-background-color: darkgray;
 }
 
 .connection {
@@ -12,6 +9,53 @@
     -fx-border-color: darkblue;
     -fx-border-insets: 0;
     -fx-border-width: 1;
-    -fx-border-radius: 15 15 15 15;
-    -fx-background-radius: 15 15 15 15;
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+}
+
+.connection-scrollpane > .viewport {
+   -fx-background-color: transparent;
+}
+
+.connection-scrollpane {
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+}
+
+.connection-button {
+    -fx-padding: 5;
+    -fx-border-color: darkgray;
+    -fx-border-insets: 0;
+    -fx-border-width: 1;
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+}
+
+.favourite-icon {
+    -fx-background-color: -icon-paint;
+    -size: 15;
+    -fx-min-height: -size;
+    -fx-min-width: -size;
+    -fx-max-height: -size;
+    -fx-max-width: -size;
+
+    -fx-shape: "M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z";
+}
+
+.favourite-button {
+    -icon-paint: white;
+    -fx-content-display: graphic-only;
+}
+
+.unfavourite-button {
+    -icon-paint: yellow;
+    -fx-content-display: graphic-only;
+}
+
+.favourite-button:hover {
+    -icon-paint: linear-gradient(to bottom, yellow, #cfc01b);
+}
+
+.unfavourite-button:hover {
+    -icon-paint: linear-gradient(to bottom, white, #cfc01b);
 }
