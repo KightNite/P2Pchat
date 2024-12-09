@@ -8,7 +8,6 @@ import com.kightnite.p2pchat.client.Client;
 import com.kightnite.p2pchat.events.ChatListener;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.SocketAddress;
 import java.util.Properties;
 
@@ -75,9 +74,5 @@ public class ChatApplication extends Application {
         if (client.clientConnection != null) {
             client.clientConnection.close();
         }
-    }
-
-    public static void main(String[] args) {
-        launch();
     }
 }

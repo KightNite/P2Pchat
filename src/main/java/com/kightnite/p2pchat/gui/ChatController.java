@@ -3,7 +3,6 @@ package com.kightnite.p2pchat.gui;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
@@ -90,7 +89,6 @@ public class ChatController {
 
     @FXML
     protected void onChatButtonClick(ClientData data) {
-        //TODO!!!
         currentChat = data;
 
         // Set name of user you chat with
@@ -247,63 +245,6 @@ public class ChatController {
         ContextMenu contextMenu = new ContextMenu(menuItems);
 
         return contextMenu;
-    }
-
-    private GridPane createConnectionGrid(List<ClientData> connections) {
-
-        GridPane gridConnections = new GridPane();
-
-        //TODO!!! Clean up
-        for(int i=0; i<connections.size(); i++){
-            SocketAddress address = connections.get(i).address;
-            ClientData data = connections.get(i);
-
-            Button buttonConnect = new Button();
-            if (client.clientConnection.connectedChats.containsKey(address)) {
-                if (client.clientConnection.connectedChats.get(address).isPending) {
-                    buttonConnect.setText("Accept");
-                    buttonConnect.setOnAction(actionEvent -> onAcceptButtonClick(data));
-
-                    Button buttonReject = new Button();
-                    buttonReject.setText("Reject");
-                    buttonReject.setOnAction(actionEvent -> onRejectButtonClick(address));
-
-                    gridConnections.add(buttonReject, 1, i);
-                }
-                else if (client.clientConnection.connectedChats.get(address).chatHistory.isEmpty()) {
-                    buttonConnect.setText("Pending");
-                    buttonConnect.setDisable(true);
-                } else {
-                    buttonConnect.setText("Chat");
-                    buttonConnect.setOnAction(actionEvent -> onChatButtonClick(data));
-
-                    Button buttonClose = new Button();
-                    buttonClose.setText("Close");
-                    buttonClose.setOnAction(actionEvent -> onCloseButtonClick(address));
-                    gridConnections.add(buttonClose, 2, i);
-                }
-            } else {
-                buttonConnect.setText("Connect");
-                buttonConnect.setOnAction(actionEvent -> onConnectButtonClick(address, buttonConnect));
-            }
-
-
-            Label label = new Label();
-            label.setText(connections.get(i).toString());
-
-
-            //add them to the GridPane
-            gridConnections.add(buttonConnect, 0, i); //  (child, columnIndex, rowIndex)
-            gridConnections.add(label , 3, i);
-
-
-
-            // margins are up to your preference
-            GridPane.setMargin(buttonConnect, new Insets(5));
-            GridPane.setMargin(label, new Insets(5));
-        }
-
-        return gridConnections;
     }
 
     protected void setClient(Client client) {

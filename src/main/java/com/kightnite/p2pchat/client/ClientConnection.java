@@ -15,7 +15,7 @@ import java.util.List;
 public class ClientConnection extends Thread{
     public ServerSocket listenerServerSocket;
     public Hashtable<SocketAddress, ClientChatThread> connectedChats;
-    private List<ChatListener> chatListeners;
+    private final List<ChatListener> chatListeners;
 
     public ClientConnection(ServerSocket serverSocket) {
         listenerServerSocket = serverSocket;
@@ -47,8 +47,7 @@ public class ClientConnection extends Thread{
     }
 
     public boolean connectToPeer(SocketAddress socketAddress) {
-        // TODO! Cleanup
-        // CHECK FOR EXISTING PENDING CONNECTION TO THIS ADDRESS
+        // Check for existing pending connection for this address
         if(connectedChats.containsKey(socketAddress)){
             return false;
         }
@@ -65,7 +64,6 @@ public class ClientConnection extends Thread{
 
             // Create Chat instance
             startChat(socket, socketAddress);
-
         } catch (IOException e) {
             return false;
         }
@@ -73,8 +71,6 @@ public class ClientConnection extends Thread{
     }
 
     public void listenToConnection() throws IOException, ClassNotFoundException {
-        // TODO! Cleanup
-
         // Start listening for connections
         Socket socket = listenerServerSocket.accept();
         System.out.println("New client connection request");
@@ -85,7 +81,7 @@ public class ClientConnection extends Thread{
         SocketAddress address = (SocketAddress) objectReader.readObject();
         System.out.println(address);
 
-        // CHECK FOR EXISTING PENDING CONNECTION AND CLIENTCHAT FROM THIS ADDRESS
+        // Check for existing pending connection from this address
         if(connectedChats.containsKey(address)){
             socket.close();
             return;
@@ -120,20 +116,14 @@ public class ClientConnection extends Thread{
     }
 
     public void updatePendingConnections() {
-        Platform.runLater(() -> {
-            chatListeners.forEach(ChatListener::onNewConnection);
-        });
+        Platform.runLater(() -> chatListeners.forEach(ChatListener::onNewConnection));
     }
 
     public void addPendingConnectionListener(ChatListener listener) {
         chatListeners.add(listener);
     }
 
-    public Hashtable<SocketAddress, Socket> getPendingConnections() {
-        return null;
-    }
-
-    private ClientChatThread startChat(Socket socket, SocketAddress address) throws IOException {
+    private ClientChatThread startChat(Socket socket, SocketAddress address) {
         try {
             ClientChatThread chat = new ClientChatThread(socket, address, chatListeners);
             chat.connectedChats = this.connectedChats;

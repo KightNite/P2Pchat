@@ -30,7 +30,7 @@ public class ServerListener {
                 SocketAddress address = socket.getRemoteSocketAddress();
 //                System.out.println(address);
 
-                new ServerThread(socket, addressTable, address).start();
+                new ServerThread(socket, addressTable).start();
             }
 
         } catch (IOException ex) {

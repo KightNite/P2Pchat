@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 public class ServerThread extends Thread {
-    private Socket socket;
-    private Hashtable<SocketAddress, ServerData> addressTable;
-    private SocketAddress address;
+    private final Socket socket;
+    private final Hashtable<SocketAddress, ServerData> addressTable;
+    private final SocketAddress address;
 
-    public ServerThread(Socket socket, Hashtable<SocketAddress, ServerData> addressTable, SocketAddress address){
+    public ServerThread(Socket socket, Hashtable<SocketAddress, ServerData> addressTable){
         this.socket = socket;
         this.addressTable = addressTable;
         this.address = socket.getRemoteSocketAddress();

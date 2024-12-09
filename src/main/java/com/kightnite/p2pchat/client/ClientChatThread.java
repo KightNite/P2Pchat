@@ -29,7 +29,7 @@ public class ClientChatThread extends Thread{
         this.socket = socket;
         this.socketAddress = socketAddress;
         this.chatListeners = chatListeners;
-        objectWriter = new ObjectOutputStream(socket.getOutputStream());;
+        objectWriter = new ObjectOutputStream(socket.getOutputStream());
         objectReader = new ObjectInputStream(socket.getInputStream());
     }
 
@@ -81,14 +81,10 @@ public class ClientChatThread extends Thread{
     }
 
     public void updateChat() {
-        Platform.runLater(() -> {
-            chatListeners.forEach(x -> x.onNewMessage(socketAddress));
-        });
+        Platform.runLater(() -> chatListeners.forEach(x -> x.onNewMessage(socketAddress)));
     }
 
     public void notifyClose() {
-        Platform.runLater(() -> {
-            chatListeners.forEach(x -> x.onConnectionClose(socketAddress));
-        });
+        Platform.runLater(() -> chatListeners.forEach(x -> x.onConnectionClose(socketAddress)));
     }
 }

@@ -162,7 +162,7 @@ public class Client {
     public List<ClientData> ping() {
         writer.println("Hi");
 
-        List<ClientData> result = null;
+        List<ClientData> result;
 
         try {
             // Get sockets from server and remove own
