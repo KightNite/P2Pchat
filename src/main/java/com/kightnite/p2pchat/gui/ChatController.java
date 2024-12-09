@@ -6,11 +6,12 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.*;
 import com.kightnite.p2pchat.client.Client;
 import com.kightnite.p2pchat.model.ChatMessage;
 import com.kightnite.p2pchat.model.ClientData;
-import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -126,6 +127,14 @@ public class ChatController {
         chatText.setText("");
     }
 
+    @FXML
+    protected void onCopyToClipboard(String data) {
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(data);
+        clipboard.setContent(content);
+    }
+
     private VBox createConnectionVBox(List<ClientData> connections) {
         VBox vbox = new VBox(5);
 
@@ -148,10 +157,13 @@ public class ChatController {
         hbox.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(hbox, Priority.ALWAYS);
 
-        // TODO! Change to ContextMenu
-        Tooltip tooltip = new Tooltip(data.address.toString());
-        tooltip.setShowDelay(Duration.seconds(0.5));
-        Tooltip.install(hbox, tooltip);
+        // Create Context Menu for each connection
+        MenuItem menuItem = new MenuItem(data.address.toString() + "\nCopy to Clipboard");
+        menuItem.setOnAction(actionEvent -> onCopyToClipboard(data.address.toString()));
+        ContextMenu contextMenu = createContextMenu(menuItem);
+        hbox.setOnContextMenuRequested(e -> {
+            contextMenu.show(hbox.getScene().getWindow(), e.getScreenX(), e.getScreenY());
+        });
 
         // Create buttons based on current state with other connections
         if (client.clientConnection.connectedChats.containsKey(data.address)) {
@@ -231,6 +243,12 @@ public class ChatController {
         return button;
     }
 
+    private ContextMenu createContextMenu(MenuItem... menuItems) {
+        ContextMenu contextMenu = new ContextMenu(menuItems);
+
+        return contextMenu;
+    }
+
     private GridPane createConnectionGrid(List<ClientData> connections) {
 
         GridPane gridConnections = new GridPane();
@@ -291,6 +309,9 @@ public class ChatController {
     protected void setClient(Client client) {
         this.client = client;
         this.welcomeText.setText(client.name);
+
+        MenuItem menuItem = new MenuItem(client.getInviteSocketAddress().toString());
+        this.welcomeText.setContextMenu(createContextMenu(menuItem));
     }
 
     protected List<ChatMessage> getChatHistory(SocketAddress address) {

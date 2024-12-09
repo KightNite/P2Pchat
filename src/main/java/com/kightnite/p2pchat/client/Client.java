@@ -182,4 +182,8 @@ public class Client {
             throw new RuntimeException(ex);
         }
     }
+
+    public SocketAddress getInviteSocketAddress() {
+        return inviteServerSocket.getLocalSocketAddress();
+    }
 }
